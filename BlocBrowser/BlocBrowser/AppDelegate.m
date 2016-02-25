@@ -21,7 +21,7 @@
     
     // create a UIWindow
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    self.window.backgroundColor = [UIColor blueColor];
+    self.window.backgroundColor = [UIColor yellowColor];
     
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:
                                       [[ViewController alloc] init]]; // the VC our project created for us
