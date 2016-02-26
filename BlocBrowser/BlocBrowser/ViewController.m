@@ -87,7 +87,7 @@
     NSLog(@"end of loadView: Main view created and web view subview added");
 }
 
-- (void)viewDidLoad {
+- (void) viewDidLoad {
     [super viewDidLoad];
     
     self.edgesForExtendedLayout = UIRectEdgeNone;
@@ -156,19 +156,16 @@
 - (BOOL) textFieldShouldReturn:(UITextField*)textField {
     [textField resignFirstResponder];
     
-    // if text contains space, we'll treat as Google search
-    if ([textField.text containsString:@" "]) {
-        NSString* query = [textField.text stringByReplacingOccurrencesOfString:@" " withString:@"+"];
-        NSString* urlString = [NSString stringWithFormat:@"http://google.com/search?q=%@", query];
-        NSURL* url = [NSURL URLWithString:urlString];
-        NSURLRequest* request = [NSURLRequest requestWithURL:url];
-        [self.webView loadRequest:request];
-        return NO;
+    // start processing user input
+    NSString* userInput = textField.text;
+    
+    NSString* urlString = userInput; // default url is just what user typed
+    if ([userInput containsString:@" "]) { // but if contains space, we'll treat as Google search
+        NSString* query = [userInput stringByReplacingOccurrencesOfString:@" " withString:@"+"];
+        urlString = [NSString stringWithFormat:@"http://google.com/search?q=%@", query];
     }
     
-    // else, setup url request
-    NSString* urlString = textField.text;
-    NSURL* url = [NSURL URLWithString:urlString]; // default url is just what user typed
+    NSURL* url = [NSURL URLWithString:urlString];
     
     if (!url.scheme) { // user didn't type http:// or https:// so prepend
         url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", urlString]];

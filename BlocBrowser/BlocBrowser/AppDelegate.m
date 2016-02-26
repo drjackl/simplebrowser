@@ -27,7 +27,7 @@
                                       [[ViewController alloc] init]]; // the VC our project created for us
     
     [self.window makeKeyAndVisible];
-    NSLog(@"Window created, root VC set");
+    NSLog(@"end of didFinishLaunching: Window created, root VC set");
     
     return YES;
 }
