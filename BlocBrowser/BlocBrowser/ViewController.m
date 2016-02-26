@@ -84,7 +84,7 @@
     }
     
     self.view = mainView;
-    NSLog(@"Main view created and web view subview added");
+    NSLog(@"end of loadView: Main view created and web view subview added");
 }
 
 - (void)viewDidLoad {
@@ -153,12 +153,22 @@
 #pragma mark - UITextFieldDelegate
 
 // override <UITextFieldDelegate> to make URL field work
-- (BOOL) textFieldShouldReturn:(UITextField *)textField {
+- (BOOL) textFieldShouldReturn:(UITextField*)textField {
     [textField resignFirstResponder];
     
-    // setup url request
+    // if text contains space, we'll treat as Google search
+    if ([textField.text containsString:@" "]) {
+        NSString* query = [textField.text stringByReplacingOccurrencesOfString:@" " withString:@"+"];
+        NSString* urlString = [NSString stringWithFormat:@"http://google.com/search?q=%@", query];
+        NSURL* url = [NSURL URLWithString:urlString];
+        NSURLRequest* request = [NSURLRequest requestWithURL:url];
+        [self.webView loadRequest:request];
+        return NO;
+    }
+    
+    // else, setup url request
     NSString* urlString = textField.text;
-    NSURL* url = [NSURL URLWithString:urlString];
+    NSURL* url = [NSURL URLWithString:urlString]; // default url is just what user typed
     
     if (!url.scheme) { // user didn't type http:// or https:// so prepend
         url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", urlString]];
