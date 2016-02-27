@@ -116,7 +116,7 @@
 }
 
 - (void) panFired:(UIPanGestureRecognizer*)recognizer {
-    if (recognizer.state == UIGestureRecognizerStateRecognized) {
+    if (recognizer.state == UIGestureRecognizerStateChanged) { // StateRecognized is finger lifted
         // location no longer important but what direction it travelled in
         CGPoint translation = [recognizer translationInView:self];
         NSLog(@"New translation: %@", NSStringFromCGPoint(translation));
