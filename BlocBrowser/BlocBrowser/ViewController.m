@@ -8,8 +8,14 @@
 
 #import "ViewController.h"
 #import <WebKit/WebKit.h> // for WKWebView
+#import "FloatingToolbar.h"
 
-@interface ViewController () <WKNavigationDelegate, UITextFieldDelegate> // so VC can be webView's delegate (wV.delegate = self)
+#define kWebBrowserBackString NSLocalizedString(@"Back", @"Back command")
+#define kWebBrowserForwardString NSLocalizedString(@"Forward", @"Forward command")
+#define kWebBrowserStopString NSLocalizedString(@"Stop", @"Stop command")
+#define kWebBrowserRefreshString NSLocalizedString(@"Refresh", @"Reload command")
+
+@interface ViewController () <WKNavigationDelegate, UITextFieldDelegate, FloatingToolbarDelegate> // so VC can be webView's delegate (wV.delegate = self)
 
 @property (nonatomic) WKWebView* webView; // default should be strong
 @property (nonatomic) UITextField* textField;
@@ -18,6 +24,8 @@
 @property (nonatomic, strong) UIButton* forwardButton;
 @property (nonatomic, strong) UIButton* stopButton;
 @property (nonatomic, strong) UIButton* reloadButton;
+
+@property (nonatomic, strong) FloatingToolbar* toolbar;
 
 @property (nonatomic) UIActivityIndicatorView* activityIndicator;
 
@@ -43,6 +51,10 @@
     self.textField.placeholder = NSLocalizedString(@"Website URL or Google query (add a space)", @"Placeholder text for web browser URL field");
     self.textField.backgroundColor = [UIColor colorWithWhite:220/255.0f alpha:1];
     self.textField.delegate = self;
+    
+    // toolbar: initialize
+    self.toolbar = [[FloatingToolbar alloc] initWithFourTitles:@[kWebBrowserBackString, kWebBrowserForwardString, kWebBrowserStopString, kWebBrowserRefreshString]];
+    self.toolbar.delegate = self;
     
     // button bar: 1. initialize
     self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -72,6 +84,8 @@
     
     [mainView addSubview:self.webView];
     [mainView addSubview:self.textField];
+    // toolbar: add as subview
+    [mainView addSubview:self.toolbar];
     // button bar: 3. add as subviews (could also put self.webView and self.textField in below array too)
     for (UIView* viewToAdd in @[self.backButton, self.forwardButton, self.stopButton, self.reloadButton]) {
         [mainView addSubview:viewToAdd];
@@ -140,6 +154,8 @@
         button.frame = CGRectMake(currentButtonX, CGRectGetMaxY(self.webView.frame), buttonWidth, itemHeight);
         currentButtonX += buttonWidth;
     }
+    
+    self.toolbar.frame = CGRectMake(20, 100, 280, 60);
 }
 
 // deleting didReceiveMemoryWarning boilerplate method
@@ -205,6 +221,19 @@ didFailProvisionalNavigation:(WKNavigation*)navigation
     [self updateButtonsAndTitle];
 }
 
+#pragma mark - FloatingToolbarDelegate
+- (void) floatingToolbar:(FloatingToolbar*)toolBar didSelectButtonWithTitle:(NSString*)title {
+    if ([title isEqual:kWebBrowserBackString]) {
+        [self.webView goBack];
+    } else if ([title isEqual:kWebBrowserForwardString]) {
+        [self.webView goForward];
+    } else if ([title isEqual:kWebBrowserStopString]) {
+        [self.webView stopLoading];
+    } else if ([title isEqual:kWebBrowserRefreshString]) {
+        [self.webView reload];
+    }
+}
+
 #pragma mark - Miscellaneous
 
 // handle all UI updates: updating page title, enable/disable buttons in bar, spinner
@@ -221,6 +250,10 @@ didFailProvisionalNavigation:(WKNavigation*)navigation
         [self.activityIndicator stopAnimating];
     }
     // set enabled state of buttons
+    [self.toolbar setEnabled:[self.webView canGoBack] forButtonWithTitle:kWebBrowserBackString];
+    [self.toolbar setEnabled:[self.webView canGoForward] forButtonWithTitle:kWebBrowserForwardString];
+    [self.toolbar setEnabled:[self.webView isLoading] forButtonWithTitle:kWebBrowserStopString];
+    [self.toolbar setEnabled:![self.webView isLoading]&&self.webView.URL forButtonWithTitle:kWebBrowserRefreshString];
     self.backButton.enabled = [self.webView canGoBack];
     self.forwardButton.enabled = [self.webView canGoForward];
     self.stopButton.enabled = self.webView.isLoading;
