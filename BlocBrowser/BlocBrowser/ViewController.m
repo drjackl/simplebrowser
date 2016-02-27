@@ -200,6 +200,17 @@ didFailProvisionalNavigation:(WKNavigation*)navigation
     }
 }
 
+// only allow this drag placement if toolbar not pushed off screen
+- (void) floatingToolbar:(FloatingToolbar*)toolBar didTryToPanWithOffset:(CGPoint)offset {
+    CGPoint startingPoint = toolBar.frame.origin;
+    CGPoint newPoint = CGPointMake(startingPoint.x + offset.x, startingPoint.y + offset.y);
+    
+    CGRect potentialNewFrame = CGRectMake(newPoint.x, newPoint.y, CGRectGetWidth(toolBar.frame), CGRectGetHeight(toolBar.frame));
+    if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
+        toolBar.frame = potentialNewFrame;
+    }
+}
+
 #pragma mark - Miscellaneous
 
 // handle all UI updates: updating page title, enable/disable buttons in bar, spinner

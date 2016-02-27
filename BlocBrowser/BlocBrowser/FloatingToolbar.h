@@ -14,6 +14,7 @@
 
 @optional
 - (void) floatingToolbar:(FloatingToolbar*)toolBar didSelectButtonWithTitle:(NSString*)title;
+- (void) floatingToolbar:(FloatingToolbar*)toolBar didTryToPanWithOffset:(CGPoint)offset; // allows delegate (VC) to decide whether to move toolbar or not since toolbar shouldn't move itself
 
 @end // delegate protocol definition
 

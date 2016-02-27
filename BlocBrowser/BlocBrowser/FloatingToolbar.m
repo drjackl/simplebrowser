@@ -15,6 +15,9 @@
 @property (nonatomic) NSArray* labels;
 @property (nonatomic, weak) UILabel* currentLabel;
 
+@property (nonatomic) UITapGestureRecognizer* tapGesture; // includes touchesEvents now
+@property (nonatomic) UIPanGestureRecognizer* panGesture;
+
 @end
 
 
@@ -53,6 +56,11 @@
         for (UILabel* thisLabel in self.labels) {
             [self addSubview:thisLabel];
         }
+        
+        self.tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapFired:)]; // assign method to call when tap detected
+        [self addGestureRecognizer:self.tapGesture]; // tell view to route touch events through this gesture recognizer
+        self.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panFired:)];
+        [self addGestureRecognizer:self.panGesture];
     }
     return self;
 }
@@ -79,6 +87,7 @@
 
 #pragma mark - Touch Handling
 
+// given a touch, find the label underneath (if it is a label)
 - (UILabel*) labelFromTouches:(NSSet*)touches withEvent:(UIEvent*)event {
     UITouch* touch = [touches anyObject];
     CGPoint location = [touch locationInView:self]; // finds touch coordinates
@@ -91,48 +100,78 @@
     }
 }
 
-// when touch begins, dim label to highlight and store currentLable
-- (void) touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    UILabel* label = [self labelFromTouches:touches withEvent:event];
-    
-    self.currentLabel = label;
-    self.currentLabel.alpha = 0.5;
-}
-
-// when touch moves, check if touching same label
-- (void) touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event {
-    UILabel* label = [self labelFromTouches:touches withEvent:event];
-    
-    if (self.currentLabel != label) { // initial label no longer being touched
-        self.currentLabel.alpha = 1;
-    } else { // initial label still being touched
-        self.currentLabel.alpha = 0.5;
-    }
-}
-
-// if finger lifted over same label, inform the delegate
-- (void) touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent*)event {
-    UILabel* label = [self labelFromTouches:touches withEvent:event];
-    
-    if (self.currentLabel == label) {
-        NSLog(@"Label tapped: %@", self.currentLabel.text);
+- (void) tapFired:(UITapGestureRecognizer*)recognizer {
+    // first, detect that state was recognized (all other states undetected)
+    if (recognizer.state == UIGestureRecognizerStateRecognized) {
+        CGPoint location = [recognizer locationInView:self]; // get gesture location wrt self.bounds
+        UIView* tappedView = [self hitTest:location withEvent:nil]; // finds view
         
-        // always required to check for optional protocol methods, else app crash
-        if ([self.delegate respondsToSelector:@selector(floatingToolbar:didSelectButtonWithTitle:)]) {
-            [self.delegate floatingToolbar:self didSelectButtonWithTitle:self.currentLabel.text];
+        // check if view was in fact one of our labels
+        if ([self.labels containsObject:tappedView]) {
+            if ([self.delegate respondsToSelector:@selector(floatingToolbar:didSelectButtonWithTitle:)]) {
+                [self.delegate floatingToolbar:self didSelectButtonWithTitle:((UILabel*)tappedView).text]; // need to cast to UILabel to get text attribute
+            }
         }
     }
-    
-    // either way, reset tracking variables to initial values
-    self.currentLabel.alpha = 1;
-    self.currentLabel = nil;
 }
 
-// if touch cancelled, reset tracking variables
-- (void) touchesCancelled:(NSSet*)touches withEvent:(UIEvent*)event {
-    self.currentLabel.alpha = 1;
-    self.currentLabel = nil;
+- (void) panFired:(UIPanGestureRecognizer*)recognizer {
+    if (recognizer.state == UIGestureRecognizerStateRecognized) {
+        // location no longer important but what direction it travelled in
+        CGPoint translation = [recognizer translationInView:self];
+        NSLog(@"New translation: %@", NSStringFromCGPoint(translation));
+        
+        if ([self.delegate respondsToSelector:@selector(floatingToolbar:didTryToPanWithOffset:)]) {
+            [self.delegate floatingToolbar:self didTryToPanWithOffset:translation];
+        }
+        
+        // at end, reset translation to zero so we get difference of each mini-pan
+        [recognizer setTranslation:CGPointZero inView:self];
+    }
 }
+
+//// when touch begins, dim label to highlight and store currentLable
+//- (void) touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+//    UILabel* label = [self labelFromTouches:touches withEvent:event];
+//    
+//    self.currentLabel = label;
+//    self.currentLabel.alpha = 0.5;
+//}
+//
+//// when touch moves, check if touching same label
+//- (void) touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event {
+//    UILabel* label = [self labelFromTouches:touches withEvent:event];
+//    
+//    if (self.currentLabel != label) { // initial label no longer being touched
+//        self.currentLabel.alpha = 1;
+//    } else { // initial label still being touched
+//        self.currentLabel.alpha = 0.5;
+//    }
+//}
+//
+//// if finger lifted over same label, inform the delegate
+//- (void) touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent*)event {
+//    UILabel* label = [self labelFromTouches:touches withEvent:event];
+//    
+//    if (self.currentLabel == label) {
+//        NSLog(@"Label tapped: %@", self.currentLabel.text);
+//        
+//        // always required to check for optional protocol methods, else app crash
+//        if ([self.delegate respondsToSelector:@selector(floatingToolbar:didSelectButtonWithTitle:)]) {
+//            [self.delegate floatingToolbar:self didSelectButtonWithTitle:self.currentLabel.text];
+//        }
+//    }
+//    
+//    // either way, reset tracking variables to initial values
+//    self.currentLabel.alpha = 1;
+//    self.currentLabel = nil;
+//}
+//
+//// if touch cancelled, reset tracking variables
+//- (void) touchesCancelled:(NSSet*)touches withEvent:(UIEvent*)event {
+//    self.currentLabel.alpha = 1;
+//    self.currentLabel = nil;
+//}
 
 #pragma mark - Button Enabling
 
