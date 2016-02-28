@@ -76,6 +76,9 @@
                                               initWithCustomView:self.activityIndicator];
     //[self.activityIndicator startAnimating]; // experiment: see how it looks
     
+    // move out of viewWillLayoutSubviews so only called once
+    self.toolbar.frame = CGRectMake(20, 100, 280, 60); // original values
+    
     // Do any additional setup after loading the view, typically from a nib.
 
 //    // stack overflow, first solution -autorelease
@@ -120,7 +123,7 @@
     self.webView.frame = CGRectMake(0, CGRectGetMaxY(self.textField.frame), width, browserHeight);
     //self.webView.frame = self.view.frame; // previously, the webview fill the main view
     
-    self.toolbar.frame = CGRectMake(20, 100, 280, 60); // original values
+    //self.toolbar.frame = CGRectMake(20, 100, 280, 60); // original values
     //self.toolbar.frame = CGRectMake(200, 150, 480, 160); // experimental values
 }
 
@@ -206,9 +209,41 @@ didFailProvisionalNavigation:(WKNavigation*)navigation
     CGPoint newPoint = CGPointMake(startingPoint.x + offset.x, startingPoint.y + offset.y);
     
     CGRect potentialNewFrame = CGRectMake(newPoint.x, newPoint.y, CGRectGetWidth(toolBar.frame), CGRectGetHeight(toolBar.frame));
+    //NSLog(@"View bounds: %@", NSStringFromCGRect(self.view.bounds));
+    NSLog(@"New frame: %@", NSStringFromCGRect(potentialNewFrame));
     if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
         toolBar.frame = potentialNewFrame;
     }
+}
+
+// similar to panning/dragging, only allow if fits within view bounds
+- (void) floatingToolbar:(FloatingToolbar*)toolBar didTryToResizeWithScale:(CGFloat)scale {
+    CGPoint startingPoint = toolBar.frame.origin;
+    CGSize newSize = CGSizeMake(CGRectGetWidth(toolBar.frame)*scale, CGRectGetHeight(toolBar.frame)*scale);
+    CGFloat offsetX = (newSize.width-CGRectGetWidth(toolBar.frame)) / 2;
+    CGFloat offsetY = (newSize.height-CGRectGetHeight(toolBar.frame)) / 2;
+    NSLog(@"New Size: %@", NSStringFromCGSize(newSize));
+    NSLog(@"Offsets: %.2f %.2f", offsetX, offsetY);
+    
+    CGRect potentialNewFrame = CGRectMake(startingPoint.x - offsetX,
+                                          startingPoint.y - offsetY,
+                                          newSize.width, newSize.height);
+    //NSLog(@"View bounds: %@", NSStringFromCGRect(self.view.bounds));
+    NSLog(@"New frame: %@", NSStringFromCGRect(potentialNewFrame));
+    if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
+        toolBar.frame = potentialNewFrame;
+    }
+    
+//    CGSize startingSize = toolBar.frame.size;
+//    CGSize newSize = CGSizeMake(startingSize.width * scale, startingSize.height * scale);
+//    
+//    //CGRect potentialNewFrame = CGRectMake(newPoint.x, newPoint.y, CGRectGetWidth(toolBar.frame), CGRectGetHeight(toolBar.frame));
+//    CGRect potentialNewFrame = CGRectMake(CGRectGetMinX(toolBar.frame), CGRectGetMinY(toolBar.frame), newSize.width, newSize.height);
+//    //NSLog(@"View bounds: %@", NSStringFromCGRect(self.view.bounds));
+//    NSLog(@"New frame: %@", NSStringFromCGRect(potentialNewFrame));
+//    if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
+//        toolBar.frame = potentialNewFrame;
+//    }
 }
 
 #pragma mark - Miscellaneous
