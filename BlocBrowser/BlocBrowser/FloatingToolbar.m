@@ -12,6 +12,7 @@
 
 @property (nonatomic) NSArray* currentTitles;
 @property (nonatomic) NSArray* colors;
+@property (nonatomic) int rotationOffset; // for color rotation
 @property (nonatomic) NSMutableArray* buttons; // mutable for rotation
 //@property (nonatomic) NSArray* labels;
 //@property (nonatomic, weak) UILabel* currentLabel;
@@ -36,7 +37,7 @@
                         [UIColor colorWithRed:255/255.0 green:105/255.0 blue:97/255.0 alpha:1],
                         [UIColor colorWithRed:165/255.0 green:165/255.0 blue:164/255.0 alpha:1],
                         [UIColor colorWithRed:255/255.0 green:179/255.0 blue:71/255.0 alpha:1]];
-        
+        self.rotationOffset = 0;
         // make the 4 labels
 //        NSMutableArray* labelsArray = [[NSMutableArray alloc] init];
 //        [self.currentTitles enumerateObjectsUsingBlock:^(NSString* currentTitle, NSUInteger currentTitleIndex, BOOL * _Nonnull stop) {
@@ -230,8 +231,9 @@
 }
 
 - (void) longPressFired:(UILongPressGestureRecognizer*)recognizer {
-    if (recognizer.state == UIGestureRecognizerStateRecognized) {
-        [self rotateButtons];
+    if (recognizer.state == UIGestureRecognizerStateBegan) {
+        //[self rotateButtons];
+        [self rotateColors];
     }
 }
 
@@ -271,6 +273,13 @@
     
     [self layoutSubviews];
     //[self setNeedsDisplay];
+}
+
+- (void) rotateColors {
+    [self.buttons enumerateObjectsUsingBlock:^(UIButton* btn, NSUInteger i, BOOL * _Nonnull stop) {
+        btn.backgroundColor = self.colors[(i - self.rotationOffset) % self.colors.count];
+    }];
+    self.rotationOffset = (self.rotationOffset + 1) % self.colors.count;
 }
 
 //// when touch begins, dim label to highlight and store currentLabel
@@ -317,7 +326,6 @@
 //}
 
 #pragma mark - Button Enabling
-
 
 - (void) setEnabled:(BOOL)enabled forButtonWithTitle:(NSString *)title {
     //NSUInteger index = [self.currentTitles indexOfObject:title]; // cannot use self.currentTitles
