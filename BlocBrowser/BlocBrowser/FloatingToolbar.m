@@ -232,8 +232,8 @@
 
 - (void) longPressFired:(UILongPressGestureRecognizer*)recognizer {
     if (recognizer.state == UIGestureRecognizerStateBegan) {
-        //[self rotateButtons];
-        [self rotateColors];
+        [self rotateButtons];
+        //[self rotateColors];
     }
 }
 
