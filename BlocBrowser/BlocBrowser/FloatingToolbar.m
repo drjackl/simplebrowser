@@ -57,7 +57,7 @@
 //        }];
         NSMutableArray* buttonsArray = [[NSMutableArray alloc] init];
         [self.currentTitles enumerateObjectsUsingBlock:^(NSString* currentTitle, NSUInteger currentTitleIndex, BOOL * _Nonnull stop) {
-            UIButton* button = [[UIButton alloc] init];//[UIButton buttonWithType:UIButtonTypeCustom];
+            UIButton* button = [[UIButton alloc] init];//[UIButton buttonWithType:UIButtonTypeCustom]; // TypeCustom was my choice for assignment
             //button.userInteractionEnabled = NO; // does not initially receive touch events
             button.enabled = NO;
             button.alpha = 0.25;

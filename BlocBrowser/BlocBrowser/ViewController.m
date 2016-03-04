@@ -265,7 +265,7 @@ didFailProvisionalNavigation:(WKNavigation*)navigation
     [self.toolbar setEnabled:[self.webView canGoBack] forButtonWithTitle:kWebBrowserBackString];
     [self.toolbar setEnabled:[self.webView canGoForward] forButtonWithTitle:kWebBrowserForwardString];
     [self.toolbar setEnabled:[self.webView isLoading] forButtonWithTitle:kWebBrowserStopString];
-    [self.toolbar setEnabled:![self.webView isLoading]&&self.webView.URL forButtonWithTitle:kWebBrowserRefreshString]; // since page can be clear after loading (restting), must also ensure a page has a URL if it can be reloaded
+    [self.toolbar setEnabled:![self.webView isLoading]&&self.webView.URL forButtonWithTitle:kWebBrowserRefreshString]; // since page can be clear after loading (resetting), must also ensure a page has a URL if it can be reloaded
 }
 
 - (void) resetWebView {
@@ -275,11 +275,16 @@ didFailProvisionalNavigation:(WKNavigation*)navigation
     newWebView.navigationDelegate = self;
     [self.view addSubview:newWebView];
     
+    [self.view sendSubviewToBack:newWebView]; // floating toolbar must be in front
+    
     self.webView = newWebView;
     
     self.textField.text = nil;
     
     [self updateButtonsAndTitle];
+    
+//    // taken out of viewWillLayoutSubviews // doesn't work
+//    self.toolbar.frame = CGRectMake(20, 100, 280, 60); // original values
 }
 
 @end
